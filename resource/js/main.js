@@ -176,3 +176,17 @@ function fillMetadata() {
         }
     });
 }
+
+function sortData(col) {
+    var newData = _.sortBy(data, col);
+    var translations = {};
+    for (var i = 0; i < newData.length; i++) {
+        var row = newData[i];
+        if (!(_.has(translations,row.id))) {
+            translations[row.id] = {};
+        }
+        translations[row.id].newpos = i;
+        translations[row.id].oldpos = idPosMap[row.id];
+
+    }
+}
