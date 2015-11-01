@@ -50,8 +50,8 @@ $(document).ready(function () {
 function createTable(selector) {
     //Make an SVG Container
     svgContainer = d3.select(selector).append("svg")
-            .attr("width", JSTableLens.WIDTH)
-            .attr("height", JSTableLens.HEIGHT);
+            .attr("width", JSTableLens.WIDTH + JSTableLens.X_MIN)
+            .attr("height", JSTableLens.HEIGHT + JSTableLens.Y_MIN);
     createHeader(cols);
 //    Draw the Rectangle
 //    var rectangle = svgContainer.append("rect")
@@ -121,24 +121,48 @@ function createHeader() {
                 .attr("y", 0)
                 .attr("width", JSTableLens.COLUMN_WIDTH)
                 .attr("height", JSTableLens.HEADER_HEIGHT)
+                .attr("class", "table-header")
                 .style("fill", "none")
                 .style("stroke", "black")
                 .style("stroke-width", "1")
                 ;
-        var sort_icon = rowGroup.append("svg:img")
-                .attr("xlink:href", "resource/images/sort_both.png")
-                .attr("x", getX(i) + 20)
-                .attr("y", 15)
-                .attr("width", "20")
-                .attr("height", "20");
-
         var text = rowGroup.append("text")
                 .attr("x", getX(i) + 10)
                 .attr("y", 15)
                 .text(cols[i])
                 .attr("font-family", "sans-serif")
                 .attr("font-size", "12px")
+                .attr("class", "table-header-text")
                 ;
+
+        var sort_icon = rowGroup.append("svg:image")
+                .attr("xlink:href", "resource/images/sort_both.png")
+                .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH - 20)
+                .attr("y", 3)
+                .attr("sortmode", "none")
+                .attr("width", "14")
+                .attr("height", "14")
+                .attr("class", "table-header-sort-button")
+                ;
+
+        sort_icon.on("click", function () {
+            var test = 0;
+            var img_svg = $(this).select("svg:image");
+            var sortmode = img_svg.attr("sortmode");
+
+            console.log(sortmode);
+            if (sortmode == "none" || sortmode == "desc") {
+//                TODO
+                img_svg.attr("sortmode", "asc");
+                img_svg.attr("href", "resource/images/sort_asc.png")
+            } else {
+                img_svg.attr("sortmode", "desc");
+                img_svg.attr("href", "resource/images/sort_desc.png")
+
+            }
+
+        });
+
     }
 }
 
