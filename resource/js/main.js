@@ -12,7 +12,8 @@ var JSTableLens = {
     ROWS: 200,
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
-    ROW_HEIGHT: 20,
+    ROW_HEIGHT: 10,
+    HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
     TEXT_VISIBLE_HEIGHT: 15
@@ -65,8 +66,6 @@ function createTable(selector) {
 
 
 function createRow(row, index) {
-    //Make an SVG Container
-
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
             .on("click", function () {
                 var test = 0;
@@ -86,9 +85,9 @@ function createRow(row, index) {
                 .style("stroke-width", "1")
                 ;
         var bar = rowGroup.append("rect")
-                .attr("x", getX(i))
+                .attr("x", getX(i) + getBarMinX(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("y", getY(index))
-                .attr("width", getWidth(cols[i], JSTableLens.COLUMNS, row[cols[i]]))
+                .attr("width", getWidth(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "#71D670")
                 .style("stroke", "black")
@@ -109,8 +108,6 @@ function createRow(row, index) {
 
 
 function createHeader() {
-    //Make an SVG Container
-
     var rowGroup = svgContainer.append("g").attr("id", "header")
             .on("click", function () {
                 var test = 0;
@@ -123,7 +120,7 @@ function createHeader() {
                 .attr("x", getX(i))
                 .attr("y", 0)
                 .attr("width", JSTableLens.COLUMN_WIDTH)
-                .attr("height", JSTableLens.ROW_HEIGHT)
+                .attr("height", JSTableLens.HEADER_HEIGHT)
                 .style("fill", "none")
                 .style("stroke", "black")
                 .style("stroke-width", "1")
@@ -156,9 +153,24 @@ function getY(index) {
     return JSTableLens.Y_MIN + index * JSTableLens.ROW_HEIGHT;
 }
 
-function getWidth(col, width, value) {
-    return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
+function getBarMinX(col, width, value) {
+    if (metadata[col]["type"] == "number") {
+        return 0;
+    } else {
+        var width_each = Math.floor(width / metadata[col].unique);
+        return  metadata[col]["map"][value] * width_each;
+    }
 }
+function getWidth(col, width, value) {
+    console.log(col + "<>" + width + "<>" + value);
+    if (metadata[col]["type"] == "number") {
+        return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
+    } else {
+        var width_each = Math.floor(width / metadata[col].unique);
+        return width_each;
+    }
+}
+
 function fillMetadata() {
     metadata = {};
     _.each(cols, function (col) {
@@ -172,7 +184,7 @@ function fillMetadata() {
             var uniqueValues = _.uniq(values);
             metadata[col].unique = _.size(uniqueValues);
             metadata[col].type = "categorical";
-            metadata[col].map = _.object(uniqueValues,  _.range(_.size(uniqueValues)))
+            metadata[col].map = _.object(uniqueValues, _.range(_.size(uniqueValues)))
         }
     });
 }
