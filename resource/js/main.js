@@ -61,7 +61,7 @@ function createTable(selector) {
 
 function createRow(row, index) {
     //Make an SVG Container
-    var rowGroup = svgContainer.append("g").attr("id", "g".concat(i))
+    var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
     .on("click", function(){
         var test = 0;
 	});
