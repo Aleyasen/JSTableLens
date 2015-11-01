@@ -1,0 +1,15 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Nov 1, 2015, 3:00:20 PM
+    Author     : Amirhossein Aleyasen <aleyase2@illinois.edu>
+*/
+
+
+.table-header, .table-header-text, .table-header-sort-button  {
+    cursor: pointer;
+}
+
