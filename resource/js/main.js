@@ -206,6 +206,7 @@ function fillMetadata() {
             metadata[col].type = "number";
         } else {
             var uniqueValues = _.uniq(values);
+            uniqueValues.sort();
             metadata[col].unique = _.size(uniqueValues);
             metadata[col].type = "categorical";
             metadata[col].map = _.object(uniqueValues, _.range(_.size(uniqueValues)))
@@ -213,21 +214,20 @@ function fillMetadata() {
     });
 }
 
-function translateRow(index, oldpos, newpos) {
-    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(newpos)-getY(oldpos))).concat(")"));
+function translateRow(index, pos) {
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos)-getY(index))).concat(")"));
 }
 
 function sortData(col, ascending) {
     var newData = _.sortBy(data, col);
     if (!ascending)
-        newData = _.reverse(newData);
+        newData.reverse();
     var translations = [];
     for (var i = 0; i < newData.length; i++) {
         var row = newData[i];
         var translation = {};
         translation.id = row.id;
-        translation.newpos = i;
-        translation.oldpos = idPosMap[row.id];
+        translation.pos = i;
         idPosMap[row.id] = i;
         posIdMap[i] = row.id;
         translations.push(translation);
@@ -235,8 +235,8 @@ function sortData(col, ascending) {
     data = newData;
 
     _.each(translations, function(translation) {
-        if (translation.oldpos !== translation.newpos)
-            translateRow(translation.id, translation.oldpos, translation.newpos);
+        if (translation.id !== translation.newpos)
+            translateRow(translation.id, translation.pos);
     });
 
 }
