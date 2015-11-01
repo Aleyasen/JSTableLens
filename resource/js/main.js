@@ -1,4 +1,8 @@
 var svgContainer;
+var data;
+var posIdMap;
+var idPosMap;
+var columns;
 
 var JSTableLens = {
     WIDTH: 800,
@@ -20,14 +24,20 @@ $(document).ready(function () {
 //                })
             .get(function (error, rows) {
                 console.log(rows);
+                data = rows;
+                cols = Object.keys(rows[0]);
+                posIdMap = {};
+                idPosMap = {};
                 JSTableLens.ROWS = rows.length;
                 JSTableLens.COLUMNS = Object.keys(rows[0]).length;
                 JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
                 JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS;
-
                 createTable("#container");
                 for (var i = 0; i < rows.length; i++) {
                     createRow(rows[i], i);
+                    rows[i].id = i;
+                    posIdMap[i] = i;
+                    idPosMap[i] = i;
                 }
             });
 });
@@ -37,10 +47,8 @@ function createTable(selector) {
     svgContainer = d3.select(selector).append("svg")
             .attr("width", JSTableLens.WIDTH)
             .attr("height", JSTableLens.HEIGHT);
-//            .attr("preserveAspectRatio", "none")
-//            .attr("viewBox", "0 0 ".concat(JSTableLens.COLUMNS).concat(" ").concat(JSTableLens.ROWS));
 
-    //Draw the Rectangle
+//    Draw the Rectangle
 //    var rectangle = svgContainer.append("rect")
 //            .attr("x", JSTableLens.X_MIN)
 //            .attr("y", JSTableLens.Y_MIN)
@@ -54,13 +62,12 @@ function createTable(selector) {
 
 function createRow(row, index) {
     //Make an SVG Container
-    var rowGroup = svgContainer.append("g");
 
-    rowGroup.on("click", function (d) {
-//            last_clicked_element = $(this);
-        console.log($(this));
-        d3.event.stopPropagation();
-    });
+    var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
+            .on("click", function () {
+                var test = 0;
+                console.log($(this));
+            });
     var keys = Object.keys(row);
     for (var i = 0; i < keys.length; i++) {
         //Draw the Rectangle
@@ -69,10 +76,9 @@ function createRow(row, index) {
                 .attr("y", getY(index))
                 .attr("width", JSTableLens.COLUMN_WIDTH)
                 .attr("height", JSTableLens.ROW_HEIGHT)
-//                .attr("vector-effect", "non-scaling-stroke")
-                .attr("fill", "none")
-                .attr("stroke", "black")
-                .attr("stroke-width", "1")
+                .style("fill", "none")
+                .style("stroke", "black")
+                .style("stroke-width", "1")
                 ;
 
         if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
@@ -80,14 +86,8 @@ function createRow(row, index) {
                     .attr("x", getX(i) + 10)
                     .attr("y", getY(index) + 15)
                     .text(row[keys[i]])
-//                .attr("svg:title", original_text)
-//                .attr("id", listIndex + "-" + isSource + "-" + i)
-//                .attr("data-isSource", isSource)
                     .attr("font-family", "sans-serif")
                     .attr("font-size", "10px")
-//                .attr("text-anchor", "middle")
-//                .attr("alignment-baseline", "middle")
-//                .attr("fill", "black")
                     ;
         }
     }
