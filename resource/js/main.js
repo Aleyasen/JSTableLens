@@ -12,7 +12,8 @@ var JSTableLens = {
     ROWS: 200,
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
-    ROW_HEIGHT: 20,
+    ROW_HEIGHT: 10,
+    HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
     TEXT_VISIBLE_HEIGHT: 15
@@ -65,8 +66,6 @@ function createTable(selector) {
 
 
 function createRow(row, index) {
-    //Make an SVG Container
-
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
             .on("click", function () {
                 var test = 0;
@@ -109,8 +108,6 @@ function createRow(row, index) {
 
 
 function createHeader() {
-    //Make an SVG Container
-
     var rowGroup = svgContainer.append("g").attr("id", "header")
             .on("click", function () {
                 var test = 0;
@@ -123,7 +120,7 @@ function createHeader() {
                 .attr("x", getX(i))
                 .attr("y", 0)
                 .attr("width", JSTableLens.COLUMN_WIDTH)
-                .attr("height", JSTableLens.ROW_HEIGHT)
+                .attr("height", JSTableLens.HEADER_HEIGHT)
                 .style("fill", "none")
                 .style("stroke", "black")
                 .style("stroke-width", "1")
@@ -170,7 +167,7 @@ function getWidth(col, width, value) {
         return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
     } else {
         var width_each = Math.floor(width / metadata[col].unique);
-        return  (metadata[col]["map"][value] + 1) * width_each;
+        return width_each;
     }
 }
 
@@ -187,7 +184,7 @@ function fillMetadata() {
             var uniqueValues = _.uniq(values);
             metadata[col].unique = _.size(uniqueValues);
             metadata[col].type = "categorical";
-            metadata[col].map = _.object(uniqueValues,  _.range(_.size(uniqueValues)))
+            metadata[col].map = _.object(uniqueValues, _.range(_.size(uniqueValues)))
         }
     });
 }
