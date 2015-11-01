@@ -189,16 +189,30 @@ function fillMetadata() {
     });
 }
 
-function sortData(col) {
+function translateRow(index, oldpos, newpos) {
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(newpos)-getY(oldpos))).concat(")"));
+}
+
+function sortData(col, ascending) {
     var newData = _.sortBy(data, col);
-    var translations = {};
+    if (!ascending)
+        newData = _.reverse(newData);
+    var translations = [];
     for (var i = 0; i < newData.length; i++) {
         var row = newData[i];
-        if (!(_.has(translations,row.id))) {
-            translations[row.id] = {};
-        }
-        translations[row.id].newpos = i;
-        translations[row.id].oldpos = idPosMap[row.id];
-
+        var translation = {};
+        translation.id = row.id;
+        translation.newpos = i;
+        translation.oldpos = idPosMap[row.id];
+        idPosMap[row.id] = i;
+        posIdMap[i] = row.id;
+        translations.push(translation);
     }
+    data = newData;
+
+    _.each(translations, function(translation) {
+        if (translation.oldpos !== translation.newpos)
+            translateRow(translation.id, translation.oldpos, translation.newpos);
+    });
+
 }
