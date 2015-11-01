@@ -167,8 +167,12 @@ function fillMetadata() {
         if (!isNaN(+values[0])) {
             metadata[col].max = _.max(values);
             metadata[col].min = _.min(values);
+            metadata[col].type = "number";
         } else {
-            metadata[col].unique = _.size(_.uniq(values));
+            var uniqueValues = _.uniq(values);
+            metadata[col].unique = _.size(uniqueValues);
+            metadata[col].type = "categorical";
+            metadata[col].map = _.object(uniqueValues,  _.range(_.size(uniqueValues)))
         }
     });
 }
