@@ -6,8 +6,6 @@ var cols;
 var magnifiedPos;
 var metadata;
 
-
-
 var JSTableLens = {
     WIDTH: 800,
     HEIGHT: 450,
@@ -30,6 +28,7 @@ $(document).ready(function () {
                 console.log(rows);
                 data = rows;
                 cols = Object.keys(rows[0]);
+                fillMetadata();
                 posIdMap = {};
                 idPosMap = {};
                 magnifiedPos = [-1, -1];
@@ -152,11 +151,24 @@ function createHeader() {
 function getX(index) {
     return JSTableLens.X_MIN + index * JSTableLens.COLUMN_WIDTH;
 }
+
 function getY(index) {
     return JSTableLens.Y_MIN + index * JSTableLens.ROW_HEIGHT;
 }
 
 function getWidth(col, width, value) {
-    return 10;
-//    return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
+    return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
+}
+function fillMetadata() {
+    metadata = {};
+    _.each(cols, function (col) {
+        metadata[col] = {};
+        var values = _.pluck(data, col);
+        if (!isNaN(+values[0])) {
+            metadata[col].max = _.max(values);
+            metadata[col].min = _.min(values);
+        } else {
+            metadata[col].unique = _.size(_.uniq(values));
+        }
+    });
 }
