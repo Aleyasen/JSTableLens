@@ -2,7 +2,7 @@ var svgContainer;
 var data;
 var posIdMap;
 var idPosMap;
-var columns;
+var cols;
 var magnifiedPos;
 
 var JSTableLens = {
@@ -70,8 +70,7 @@ function createRow(row, index) {
                 var test = 0;
                 console.log($(this));
             });
-    var keys = Object.keys(row);
-    for (var i = 0; i < keys.length; i++) {
+    for (var i = 0; i < cols.length; i++) {
         //Draw the Rectangle
         var rectangle = rowGroup.append("rect")
                 .attr("x", getX(i))
@@ -87,7 +86,7 @@ function createRow(row, index) {
             var text = rowGroup.append("text")
                     .attr("x", getX(i) + 10)
                     .attr("y", getY(index) + 15)
-                    .text(row[keys[i]])
+                    .text(row[cols[i]])
                     .attr("font-family", "sans-serif")
                     .attr("font-size", "10px")
                     ;
