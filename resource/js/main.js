@@ -67,6 +67,7 @@ function createTable(selector) {
 
 function createRow(row, index) {
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
+            .attr("transform" , ("translate(0,".concat(getY(index))).concat(")"))
             .on("click", function () {
                 var test = 0;
                 console.log($(this));
@@ -77,7 +78,7 @@ function createRow(row, index) {
 
         var rectangle = rowGroup.append("rect")
                 .attr("x", getX(i))
-                .attr("y", getY(index))
+                .attr("y", 0)
                 .attr("width", JSTableLens.COLUMN_WIDTH)
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "none")
@@ -86,7 +87,7 @@ function createRow(row, index) {
                 ;
         var bar = rowGroup.append("rect")
                 .attr("x", getX(i) + getBarMinX(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
-                .attr("y", getY(index))
+                .attr("y", 0)
                 .attr("width", getWidth(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "#71D670")
@@ -97,7 +98,7 @@ function createRow(row, index) {
         if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
             var text = rowGroup.append("text")
                     .attr("x", getX(i) + 10)
-                    .attr("y", getY(index) + 15)
+                    .attr("y", 15)
                     .text(row[cols[i]])
                     .attr("font-family", "sans-serif")
                     .attr("font-size", "10px")
@@ -215,7 +216,7 @@ function fillMetadata() {
 }
 
 function translateRow(index, pos) {
-    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos)-getY(index))).concat(")"));
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos))).concat(")"));
 }
 
 function sortData(col, ascending) {
