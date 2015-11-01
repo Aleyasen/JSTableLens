@@ -1,72 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
     <head>
-        <meta charset="utf-8">
-        <title>Data Stripes</title>      
-
-        <!-- Vendor Resources (local)
-        <script type="text/javascript" src="resource/js/vendor/underscore.js"></script>
-        <script type="text/javascript" src="resource/js/vendor/d3.js"></script>
-        <!-- -->
-
-        <!-- Vendor Resources (remote) -->
-        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-        <script src="http://underscorejs.org/underscore-min.js" charset="utf-8"></script>
-        <!-- -->
-
-        <!-- datastripes code -->
-        <script type="text/javascript" src="resource_old/js/app.js"></script>
-        <script type="text/javascript" src="resource_old/js/snap.js"></script>
-        <script type="text/javascript" src="resource_old/js/geometry.js"></script>
-        <script type="text/javascript" src="resource_old/js/brushes.js"></script>
-        <script type="text/javascript" src="resource_old/js/column-classifier.js"></script>
-        <script type="text/javascript" src="resource_old/js/column-values.js"></script>
-        <script type="text/javascript" src="resource_old/js/data-generator.js"></script>
-        <script type="text/javascript" src="resource_old/js/data-file-reader.js"></script>
-        <script type="text/javascript" src="resource_old/js/draw.js"></script>
-        <script type="text/javascript" src="resource_old/js/math.js"></script>
-        <script type="text/javascript" src="resource_old/js/numeric-charts.js"></script>
-        <script type="text/javascript" src="resource_old/js/ordinal-charts.js"></script>
-        <script type="text/javascript" src="resource_old/js/panes.js"></script>
-        <script type="text/javascript" src="resource_old/js/select.js"></script>
-        <script type="text/javascript" src="resource_old/js/util.js"></script>
-        <script type="text/javascript" src="resource_old/js/datastripes-chart.js"></script>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="resource/js/main.js" type="text/javascript"></script>
     </head>
     <body>
-        <div id="buttons">
-            <input type="file" id="file-selector" single>
-            <script>
-                var control = document.getElementById("file-selector")
-                        , buttons = document.getElementById("buttons");
-                control.addEventListener("change", function (event) {
-                    var file = event.srcElement.files[0]
-                            , reader = new datastripes.DataFileReader({
-                                file: file
-                            })
-                    buttons.style.visibility = 'hidden';
-                }, false);
-            </script>
-            </input>
-
-            <button id="random-data" value="Random Data">
-                Random Data
-                <script type="text/javascript">
-                    var control = document.getElementById("random-data")
-                            , buttons = document.getElementById("buttons");
-                    control.addEventListener("click", function (event) {
-                        buttons.style.visibility = 'hidden';
-                        var generator = new datastripes.DataGenerator({
-                            rows: datastripes.ROWS,
-                            columns: datastripes.COLUMNS + 1
-                        })
-                                , dataset = generator.makeRandomCorrelatedDatasetWithNulls()
-                                , columnNames = generator.makeColumnNames()
-                                , chart = new datastripes.DatastripesChart();
-
-                        chart.init(dataset, columnNames);
-                    }, false);
-                </script>
-            </button>
-        </div>
+        <div id="container"></div>
     </body>
 </html>
