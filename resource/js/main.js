@@ -140,6 +140,7 @@ function createHeader() {
                 .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH - 20)
                 .attr("y", 3)
                 .attr("sortmode", "none")
+                .attr("col", cols[i])
                 .attr("width", "14")
                 .attr("height", "14")
                 .attr("class", "table-header-sort-button")
@@ -147,18 +148,19 @@ function createHeader() {
 
         sort_icon.on("click", function () {
             var test = 0;
-            var img_svg = $(this).select("svg:image");
-            var sortmode = img_svg.attr("sortmode");
-
+            var icon = $(this).select("svg:image");
+            var sortmode = icon.attr("sortmode");
+            //reset all other icons
+            console.log(d3.select(this.parentNode));
             console.log(sortmode);
             if (sortmode == "none" || sortmode == "desc") {
-//                TODO
-                img_svg.attr("sortmode", "asc");
-                img_svg.attr("href", "resource/images/sort_asc.png")
+                icon.attr("sortmode", "asc");
+                icon.attr("href", "resource/images/sort_asc.png");
+                sortData(icon.attr("col"), true);
             } else {
-                img_svg.attr("sortmode", "desc");
-                img_svg.attr("href", "resource/images/sort_desc.png")
-
+                icon.attr("sortmode", "desc");
+                icon.attr("href", "resource/images/sort_desc.png");
+                sortData(icon.attr("col"), false);
             }
 
         });
@@ -218,7 +220,7 @@ function sortData(col) {
     var translations = {};
     for (var i = 0; i < newData.length; i++) {
         var row = newData[i];
-        if (!(_.has(translations,row.id))) {
+        if (!(_.has(translations, row.id))) {
             translations[row.id] = {};
         }
         translations[row.id].newpos = i;
