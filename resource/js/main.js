@@ -8,7 +8,8 @@ var JSTableLens = {
     COLUMN_WIDTH: 100,
     ROW_HEIGHT: 20,
     Y_MIN: 0,
-    X_MIN: 0
+    X_MIN: 0,
+    TEXT_VISIBLE_HEIGHT: 15
 }
 
 
@@ -54,6 +55,12 @@ function createTable(selector) {
 function createRow(row, index) {
     //Make an SVG Container
     var rowGroup = svgContainer.append("g");
+
+    rowGroup.on("click", function (d) {
+//            last_clicked_element = $(this);
+        console.log($(this));
+        d3.event.stopPropagation();
+    });
     var keys = Object.keys(row);
     for (var i = 0; i < keys.length; i++) {
         //Draw the Rectangle
@@ -67,19 +74,22 @@ function createRow(row, index) {
                 .attr("stroke", "black")
                 .attr("stroke-width", "1")
                 ;
-        var text = rowGroup.append("text")
-                .attr("x", getX(i) + 10)
-                .attr("y", getY(index) - 5)
-                .text(row[keys[i]])
+
+        if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
+            var text = rowGroup.append("text")
+                    .attr("x", getX(i) + 10)
+                    .attr("y", getY(index) + 15)
+                    .text(row[keys[i]])
 //                .attr("svg:title", original_text)
 //                .attr("id", listIndex + "-" + isSource + "-" + i)
 //                .attr("data-isSource", isSource)
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "10px")
+                    .attr("font-family", "sans-serif")
+                    .attr("font-size", "10px")
 //                .attr("text-anchor", "middle")
 //                .attr("alignment-baseline", "middle")
 //                .attr("fill", "black")
-                ;
+                    ;
+        }
     }
 }
 
