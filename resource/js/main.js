@@ -13,7 +13,8 @@ var JSTableLens = {
     COLUMN_WIDTH: 100,
     ROW_HEIGHT: 20,
     Y_MIN: 0,
-    X_MIN: 0
+    X_MIN: 0,
+    TEXT_VISIBLE_HEIGHT: 15
 }
 
 
@@ -49,7 +50,7 @@ function createTable(selector) {
             .attr("width", JSTableLens.WIDTH)
             .attr("height", JSTableLens.HEIGHT);
 
-    //Draw the Rectangle
+//    Draw the Rectangle
 //    var rectangle = svgContainer.append("rect")
 //            .attr("x", JSTableLens.X_MIN)
 //            .attr("y", JSTableLens.Y_MIN)
@@ -63,10 +64,12 @@ function createTable(selector) {
 
 function createRow(row, index) {
     //Make an SVG Container
+
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
-    .on("click", function(){
-        var test = 0;
-	});
+            .on("click", function () {
+                var test = 0;
+                console.log($(this));
+            });
     var keys = Object.keys(row);
     for (var i = 0; i < keys.length; i++) {
         //Draw the Rectangle
@@ -79,13 +82,16 @@ function createRow(row, index) {
                 .style("stroke", "black")
                 .style("stroke-width", "1")
                 ;
-        var text = rowGroup.append("text")
-                .attr("x", getX(i) + 10)
-                .attr("y", getY(index) - 5)
-                .text(row[keys[i]])
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "10px")
-                ;
+
+        if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
+            var text = rowGroup.append("text")
+                    .attr("x", getX(i) + 10)
+                    .attr("y", getY(index) + 15)
+                    .text(row[keys[i]])
+                    .attr("font-family", "sans-serif")
+                    .attr("font-size", "10px")
+                    ;
+        }
     }
 }
 
