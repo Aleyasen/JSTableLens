@@ -3,6 +3,7 @@ var data;
 var posIdMap;
 var idPosMap;
 var columns;
+var magnifiedPos;
 
 var JSTableLens = {
     WIDTH: 800,
@@ -27,6 +28,7 @@ $(document).ready(function () {
                 cols = Object.keys(rows[0]);
                 posIdMap = {};
                 idPosMap = {};
+                magnifiedPos = [-1,-1];
                 JSTableLens.ROWS = rows.length;
                 JSTableLens.COLUMNS = Object.keys(rows[0]).length;
                 JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
