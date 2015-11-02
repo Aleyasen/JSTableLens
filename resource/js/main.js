@@ -13,16 +13,18 @@ var JSTableLens = {
     ROWS: 200,
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
-    ROW_HEIGHT: 20,
+    ROW_HEIGHT: 10,
+    EXTRA_ROW_HEIGHT: 20,
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
-    TEXT_VISIBLE_HEIGHT: 15
+    TEXT_VISIBLE_HEIGHT: 15,
+    NUM_ROWS_ONE_SIDE: 2
 }
 
 
 $(document).ready(function () {
-    d3.csv("resource/data/small.csv")
+    d3.csv("resource/data/sample-dataset.csv")
     .get(function (error, rows) {
         console.log(rows);
         data = rows;
@@ -35,7 +37,7 @@ $(document).ready(function () {
         JSTableLens.ROWS = data.length;
         JSTableLens.COLUMNS = Object.keys(data[0]).length;
         JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
-        JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS;
+        JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + JSTableLens.EXTRA_ROW_HEIGHT * (JSTableLens.NUM_ROWS_ONE_SIDE * 2 + 1);
         createTable("#container");
         for (var i = 0; i < data.length; i++) {
             createRow(data[i], i);
@@ -218,6 +220,10 @@ function translateRow(index, pos) {
     var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos))).concat(")"));
 }
 
+function translateRowWithOffset(index, pos, offset) {
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos)+offset)).concat(")"));
+}
+
 function sortData(col, ascending) {
     var newData = _.sortBy(data, col);
     if (!ascending)
@@ -250,13 +256,19 @@ function resetData() {
 }
 
 function reloadRows() {
-    svgContainer.selectAll("*").remove();
+    d3.select("#container").selectAll("*").remove();
+    createTable("#container");    
     for (var i = 0; i < data.length; i++) {
         createRow(data[i], i);
         data[i].id = i;
         posIdMap[i] = i;
         idPosMap[i] = i;
     }
+}
+
+function magnifyRow(index) {
+    var currentTransform = d3.select("#g".concat(index)).attr("transform");
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , currentTransform.concat(" ".concat(("scale(1,".concat(1+JSTableLens.EXTRA_ROW_HEIGHT/JSTableLens.ROW_HEIGHT)).concat(")"))));
 }
 
 function filterData(text) {
@@ -280,6 +292,57 @@ function clearFilter() {
         data = unfilteredData.slice(0);
         unfilteredData = null;
         reloadRows();
+    }
+}
+
+function zoom(index) {
+    var startZoomIndex = index - JSTableLens.NUM_ROWS_ONE_SIDE;
+    var endZoomIndex = index + JSTableLens.NUM_ROWS_ONE_SIDE;
+    if (startZoomIndex < 0)
+        startZoomIndex = 0;
+    if (endZoomIndex >= JSTableLens.ROWS)
+        endZoomIndex = JSTableLens.ROWS - 1;
+    var numMagnifiedRows = endZoomIndex - startZoomIndex + 1;
+    if (magnifiedPos[0] == -1) {
+        // Nothing is magnified so far
+        for (var i = endZoomIndex + 1; i < JSTableLens.ROWS; i++) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * numMagnifiedRows);
+        }
+
+        for (var i = endZoomIndex; i >= startZoomIndex; i--) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * (i - startZoomIndex));
+            magnifyRow(id);
+        }
+
+        magnifiedPos[0] = startZoomIndex;
+        magnifiedPos[1] = endZoomIndex;
+    } else {
+        // Something is already magnified
+        for (var i = magnifiedPos[0]; i <= magnifiedPos[1]; i++) {
+            var id = posIdMap[i];
+            translateRow(id, i);
+        }
+
+        for (var i = magnifiedPos[1]; i <= startZoomIndex; i++) {
+            var id = posIdMap[i];
+            translateRow(id, i);
+        }
+
+        for (var i = endZoomIndex; i <= magnifiedPos[0]; i++) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * numMagnifiedRows);
+        }
+
+        for (var i = endZoomIndex; i >= startZoomIndex; i--) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * (i - startZoomIndex));
+            magnifyRow(id);
+        }
+
+        magnifiedPos[0] = startZoomIndex;
+        magnifiedPos[1] = endZoomIndex;
     }
 }
 
