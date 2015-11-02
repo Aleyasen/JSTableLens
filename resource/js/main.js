@@ -23,16 +23,15 @@ var JSTableLens = {
     NUM_ROWS_ONE_SIDE: 2
 }
 
+function initSlider() {
+    var selector = "#slider";
+    $(selector).slider("option", "min", 0);
+    $(selector).slider("option", "max", JSTableLens.ROWS);
+    $(selector).slider("option", "value", JSTableLens.ROWS);
+    $(selector).css("height", (JSTableLens.ROW_HEIGHT * JSTableLens.ROWS - 20) + "px");
+}
 
 $(document).ready(function () {
-
-    function initSlider() {
-        var selector = "#slider";
-        $(selector).slider("option", "min", 0);
-        $(selector).slider("option", "max", JSTableLens.ROWS);
-        $(selector).slider("option", "value", JSTableLens.ROWS);
-        $(selector).css("height", (JSTableLens.ROW_HEIGHT * JSTableLens.ROWS - 20) + "px");
-    }
 
     $("#slider").slider({
         orientation: "vertical",
@@ -189,6 +188,7 @@ function createHeader() {
                 .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH - 20)
                 .attr("y", 3)
                 .attr("sortmode", "none")
+                .attr("col", cols[i])
                 .attr("width", "14")
                 .attr("height", "14")
                 .attr("class", "table-header-sort-button")
@@ -215,9 +215,6 @@ function createHeader() {
 
     }
 }
-
-
-
 
 function getX(index) {
     return JSTableLens.X_MIN + index * JSTableLens.COLUMN_WIDTH;
@@ -306,12 +303,20 @@ function resetData() {
 function reloadRows() {
     d3.select("#container").selectAll("*").remove();
     createTable("#container");
+
+    JSTableLens.ROWS = data.length;
+    JSTableLens.COLUMNS = Object.keys(data[0]).length;
+    JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
+    JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + JSTableLens.EXTRA_ROW_HEIGHT * (JSTableLens.NUM_ROWS_ONE_SIDE * 2 + 1);
+
     for (var i = 0; i < data.length; i++) {
         createRow(data[i], i);
         data[i].id = i;
         posIdMap[i] = i;
         idPosMap[i] = i;
     }
+    magnifiedPos = [-1,-1];
+    initSlider();
 }
 
 function magnifyRow(index) {
@@ -344,6 +349,10 @@ function clearFilter() {
 }
 
 function zoom(index) {
+    if (index < JSTableLens.NUM_ROWS_ONE_SIDE)
+        index = JSTableLens.NUM_ROWS_ONE_SIDE;
+    if (index > (JSTableLens.ROWS - JSTableLens.NUM_ROWS_ONE_SIDE - 1))
+        index = JSTableLens.ROWS - JSTableLens.NUM_ROWS_ONE_SIDE - 1;
     console.log("zoom: " + index);
     var startZoomIndex = index - JSTableLens.NUM_ROWS_ONE_SIDE;
     var endZoomIndex = index + JSTableLens.NUM_ROWS_ONE_SIDE;
@@ -379,7 +388,7 @@ function zoom(index) {
             translateRow(id, i);
         }
 
-        for (var i = endZoomIndex; i <= magnifiedPos[0]; i++) {
+        for (var i = endZoomIndex; i <= magnifiedPos[1]; i++) {
             var id = posIdMap[i];
             translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * numMagnifiedRows);
         }
