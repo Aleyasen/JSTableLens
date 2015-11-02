@@ -5,6 +5,7 @@ var idPosMap;
 var cols;
 var magnifiedPos;
 var metadata;
+var unfilteredData;
 
 var JSTableLens = {
     WIDTH: 800,
@@ -13,38 +14,38 @@ var JSTableLens = {
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
     ROW_HEIGHT: 10,
+    EXTRA_ROW_HEIGHT: 20,
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
-    TEXT_VISIBLE_HEIGHT: 15
+    TEXT_VISIBLE_HEIGHT: 15,
+    NUM_ROWS_ONE_SIDE: 2
 }
 
 
 $(document).ready(function () {
-    d3.csv("resource/data/small.csv")
-//                .row(function (d) {
-//                    createRow(d);
-//                })
-            .get(function (error, rows) {
-                console.log(rows);
-                data = rows;
-                cols = Object.keys(rows[0]);
-                fillMetadata();
-                posIdMap = {};
-                idPosMap = {};
-                magnifiedPos = [-1, -1];
-                JSTableLens.ROWS = rows.length;
-                JSTableLens.COLUMNS = Object.keys(rows[0]).length;
-                JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
-                JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS;
-                createTable("#container");
-                for (var i = 0; i < rows.length; i++) {
-                    createRow(rows[i], i);
-                    rows[i].id = i;
-                    posIdMap[i] = i;
-                    idPosMap[i] = i;
-                }
-            });
+    d3.csv("resource/data/sample-dataset.csv")
+    .get(function (error, rows) {
+        console.log(rows);
+        data = rows;
+        unfilteredData = null;
+        cols = Object.keys(rows[0]);
+        fillMetadata();
+        posIdMap = {};
+        idPosMap = {};
+        magnifiedPos = [-1, -1];
+        JSTableLens.ROWS = data.length;
+        JSTableLens.COLUMNS = Object.keys(data[0]).length;
+        JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
+        JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + JSTableLens.EXTRA_ROW_HEIGHT * (JSTableLens.NUM_ROWS_ONE_SIDE * 2 + 1);
+        createTable("#container");
+        for (var i = 0; i < data.length; i++) {
+            createRow(data[i], i);
+            data[i].id = i;
+            posIdMap[i] = i;
+            idPosMap[i] = i;
+        }
+    });
 });
 
 function createTable(selector) {
@@ -67,6 +68,7 @@ function createTable(selector) {
 
 function createRow(row, index) {
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
+            .attr("transform" , ("translate(0,".concat(getY(index))).concat(")"))
             .on("click", function () {
                 var test = 0;
                 console.log($(this));
@@ -77,7 +79,7 @@ function createRow(row, index) {
 
         var rectangle = rowGroup.append("rect")
                 .attr("x", getX(i))
-                .attr("y", getY(index))
+                .attr("y", 0)
                 .attr("width", JSTableLens.COLUMN_WIDTH)
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "none")
@@ -86,7 +88,7 @@ function createRow(row, index) {
                 ;
         var bar = rowGroup.append("rect")
                 .attr("x", getX(i) + getBarMinX(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
-                .attr("y", getY(index))
+                .attr("y", 0)
                 .attr("width", getWidth(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "#71D670")
@@ -97,7 +99,7 @@ function createRow(row, index) {
         if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
             var text = rowGroup.append("text")
                     .attr("x", getX(i) + 10)
-                    .attr("y", getY(index) + 15)
+                    .attr("y", 15)
                     .text(row[cols[i]])
                     .attr("font-family", "sans-serif")
                     .attr("font-size", "10px")
@@ -140,7 +142,6 @@ function createHeader() {
                 .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH - 20)
                 .attr("y", 3)
                 .attr("sortmode", "none")
-                .attr("col", cols[i])
                 .attr("width", "14")
                 .attr("height", "14")
                 .attr("class", "table-header-sort-button")
@@ -148,19 +149,18 @@ function createHeader() {
 
         sort_icon.on("click", function () {
             var test = 0;
-            var icon = $(this).select("svg:image");
-            var sortmode = icon.attr("sortmode");
-            //reset all other icons
-            console.log(d3.select(this.parentNode));
+            var img_svg = $(this).select("svg:image");
+            var sortmode = img_svg.attr("sortmode");
+
             console.log(sortmode);
             if (sortmode == "none" || sortmode == "desc") {
-                icon.attr("sortmode", "asc");
-                icon.attr("href", "resource/images/sort_asc.png");
-                sortData(icon.attr("col"), true);
+//                TODO
+                img_svg.attr("sortmode", "asc");
+                img_svg.attr("href", "resource/images/sort_asc.png")
             } else {
-                icon.attr("sortmode", "desc");
-                icon.attr("href", "resource/images/sort_desc.png");
-                sortData(icon.attr("col"), false);
+                img_svg.attr("sortmode", "desc");
+                img_svg.attr("href", "resource/images/sort_desc.png")
+
             }
 
         });
@@ -208,6 +208,7 @@ function fillMetadata() {
             metadata[col].type = "number";
         } else {
             var uniqueValues = _.uniq(values);
+            uniqueValues.sort();
             metadata[col].unique = _.size(uniqueValues);
             metadata[col].type = "categorical";
             metadata[col].map = _.object(uniqueValues, _.range(_.size(uniqueValues)))
@@ -215,16 +216,133 @@ function fillMetadata() {
     });
 }
 
-function sortData(col) {
+function translateRow(index, pos) {
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos))).concat(")"));
+}
+
+function translateRowWithOffset(index, pos, offset) {
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos)+offset)).concat(")"));
+}
+
+function sortData(col, ascending) {
     var newData = _.sortBy(data, col);
-    var translations = {};
+    if (!ascending)
+        newData.reverse();
+    var translations = [];
     for (var i = 0; i < newData.length; i++) {
         var row = newData[i];
-        if (!(_.has(translations, row.id))) {
-            translations[row.id] = {};
-        }
-        translations[row.id].newpos = i;
-        translations[row.id].oldpos = idPosMap[row.id];
+        var translation = {};
+        translation.id = row.id;
+        translation.pos = i;
+        idPosMap[row.id] = i;
+        posIdMap[i] = row.id;
+        translations.push(translation);
+    }
+    data = newData;
 
+    _.each(translations, function(translation) {
+        if (translation.id !== translation.newpos)
+            translateRow(translation.id, translation.pos);
+    });
+}
+
+function resetData() {
+    d3.csv("resource/data/small.csv")
+    .get(function (error, rows) {
+        data = rows;
+        unfilteredData = null;
+        reloadRows();
+    });
+}
+
+function reloadRows() {
+    d3.select("#container").selectAll("*").remove();
+    createTable("#container");    
+    for (var i = 0; i < data.length; i++) {
+        createRow(data[i], i);
+        data[i].id = i;
+        posIdMap[i] = i;
+        idPosMap[i] = i;
     }
 }
+
+function magnifyRow(index) {
+    var currentTransform = d3.select("#g".concat(index)).attr("transform");
+    var rowGroup = d3.select("#g".concat(index)).attr("transform" , currentTransform.concat(" ".concat(("scale(1,".concat(1+JSTableLens.EXTRA_ROW_HEIGHT/JSTableLens.ROW_HEIGHT)).concat(")"))));
+}
+
+function filterData(text) {
+    if (unfilteredData == null) {
+        unfilteredData = data.slice(0);
+    }
+    data = _.filter(unfilteredData, function(row) {
+        var match = _.some(_.values(row), function(val) {
+            var match = val.toString().indexOf(text)!=-1;
+            return match;
+        });
+        return match;
+    });
+    reloadRows();
+}
+
+function clearFilter() {
+    if (unfilteredData == null) {
+        resetData();
+    } else {
+        data = unfilteredData.slice(0);
+        unfilteredData = null;
+        reloadRows();
+    }
+}
+
+function zoom(index) {
+    var startZoomIndex = index - JSTableLens.NUM_ROWS_ONE_SIDE;
+    var endZoomIndex = index + JSTableLens.NUM_ROWS_ONE_SIDE;
+    if (startZoomIndex < 0)
+        startZoomIndex = 0;
+    if (endZoomIndex >= JSTableLens.ROWS)
+        endZoomIndex = JSTableLens.ROWS - 1;
+    var numMagnifiedRows = endZoomIndex - startZoomIndex + 1;
+    if (magnifiedPos[0] == -1) {
+        // Nothing is magnified so far
+        for (var i = endZoomIndex + 1; i < JSTableLens.ROWS; i++) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * numMagnifiedRows);
+        }
+
+        for (var i = endZoomIndex; i >= startZoomIndex; i--) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * (i - startZoomIndex));
+            magnifyRow(id);
+        }
+
+        magnifiedPos[0] = startZoomIndex;
+        magnifiedPos[1] = endZoomIndex;
+    } else {
+        // Something is already magnified
+        for (var i = magnifiedPos[0]; i <= magnifiedPos[1]; i++) {
+            var id = posIdMap[i];
+            translateRow(id, i);
+        }
+
+        for (var i = magnifiedPos[1]; i <= startZoomIndex; i++) {
+            var id = posIdMap[i];
+            translateRow(id, i);
+        }
+
+        for (var i = endZoomIndex; i <= magnifiedPos[0]; i++) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * numMagnifiedRows);
+        }
+
+        for (var i = endZoomIndex; i >= startZoomIndex; i--) {
+            var id = posIdMap[i];
+            translateRowWithOffset(id, i, JSTableLens.EXTRA_ROW_HEIGHT * (i - startZoomIndex));
+            magnifyRow(id);
+        }
+
+        magnifiedPos[0] = startZoomIndex;
+        magnifiedPos[1] = endZoomIndex;
+    }
+}
+
