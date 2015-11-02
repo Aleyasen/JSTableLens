@@ -5,6 +5,7 @@ var idPosMap;
 var cols;
 var magnifiedPos;
 var metadata;
+var unfilteredData;
 
 var JSTableLens = {
     WIDTH: 800,
@@ -12,7 +13,7 @@ var JSTableLens = {
     ROWS: 200,
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
-    ROW_HEIGHT: 10,
+    ROW_HEIGHT: 20,
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
@@ -22,29 +23,27 @@ var JSTableLens = {
 
 $(document).ready(function () {
     d3.csv("resource/data/small.csv")
-//                .row(function (d) {
-//                    createRow(d);
-//                })
-            .get(function (error, rows) {
-                console.log(rows);
-                data = rows;
-                cols = Object.keys(rows[0]);
-                fillMetadata();
-                posIdMap = {};
-                idPosMap = {};
-                magnifiedPos = [-1, -1];
-                JSTableLens.ROWS = rows.length;
-                JSTableLens.COLUMNS = Object.keys(rows[0]).length;
-                JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
-                JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS;
-                createTable("#container");
-                for (var i = 0; i < rows.length; i++) {
-                    createRow(rows[i], i);
-                    rows[i].id = i;
-                    posIdMap[i] = i;
-                    idPosMap[i] = i;
-                }
-            });
+    .get(function (error, rows) {
+        console.log(rows);
+        data = rows;
+        unfilteredData = null;
+        cols = Object.keys(rows[0]);
+        fillMetadata();
+        posIdMap = {};
+        idPosMap = {};
+        magnifiedPos = [-1, -1];
+        JSTableLens.ROWS = data.length;
+        JSTableLens.COLUMNS = Object.keys(data[0]).length;
+        JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
+        JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS;
+        createTable("#container");
+        for (var i = 0; i < data.length; i++) {
+            createRow(data[i], i);
+            data[i].id = i;
+            posIdMap[i] = i;
+            idPosMap[i] = i;
+        }
+    });
 });
 
 function createTable(selector) {
@@ -239,5 +238,49 @@ function sortData(col, ascending) {
         if (translation.id !== translation.newpos)
             translateRow(translation.id, translation.pos);
     });
-
 }
+
+function resetData() {
+    d3.csv("resource/data/small.csv")
+    .get(function (error, rows) {
+        data = rows;
+        unfilteredData = null;
+        reloadRows();
+    });
+}
+
+function reloadRows() {
+    svgContainer.selectAll("*").remove();
+    for (var i = 0; i < data.length; i++) {
+        createRow(data[i], i);
+        data[i].id = i;
+        posIdMap[i] = i;
+        idPosMap[i] = i;
+    }
+}
+
+function filterData(text) {
+    if (unfilteredData == null) {
+        unfilteredData = data.slice(0);
+    }
+    data = _.filter(unfilteredData, function(row) {
+        var match = _.some(_.values(row), function(val) {
+            var match = val.toString().indexOf(text)!=-1;
+            return match;
+        });
+        return match;
+    });
+    reloadRows();
+}
+
+function clearFilter() {
+    if (unfilteredData == null) {
+        resetData();
+    } else {
+        data = unfilteredData.slice(0);
+        unfilteredData = null;
+        reloadRows();
+    }
+}
+
+
