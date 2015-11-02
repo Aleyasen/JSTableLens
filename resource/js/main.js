@@ -6,6 +6,7 @@ var cols;
 var magnifiedPos;
 var metadata;
 var unfilteredData;
+var csv_file = "resource/data/sample-dataset.csv";
 
 var JSTableLens = {
     WIDTH: 800,
@@ -24,28 +25,52 @@ var JSTableLens = {
 
 
 $(document).ready(function () {
-    d3.csv("resource/data/sample-dataset.csv")
-    .get(function (error, rows) {
-        console.log(rows);
-        data = rows;
-        unfilteredData = null;
-        cols = Object.keys(rows[0]);
-        fillMetadata();
-        posIdMap = {};
-        idPosMap = {};
-        magnifiedPos = [-1, -1];
-        JSTableLens.ROWS = data.length;
-        JSTableLens.COLUMNS = Object.keys(data[0]).length;
-        JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
-        JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + JSTableLens.EXTRA_ROW_HEIGHT * (JSTableLens.NUM_ROWS_ONE_SIDE * 2 + 1);
-        createTable("#container");
-        for (var i = 0; i < data.length; i++) {
-            createRow(data[i], i);
-            data[i].id = i;
-            posIdMap[i] = i;
-            idPosMap[i] = i;
+
+    $('#query').on('input', function () {
+//        alert($(this).val());
+        var q = $(this).val();
+        console.log("query: " + q + " " + q.length);
+        if (q.length == 0) {
+            clearFilter();
+        } else {
+            filterData(q);
         }
     });
+
+    $("#clear-filter-link").click(function () {
+        $('#query').val("");
+        clearFilter();
+    });
+
+
+    $("#reset-link").click(function () {
+        $('#query').val("");
+        resetData();
+    });
+
+
+    d3.csv(csv_file)
+            .get(function (error, rows) {
+//                console.log(rows);
+                data = rows;
+                unfilteredData = null;
+                cols = Object.keys(rows[0]);
+                fillMetadata();
+                posIdMap = {};
+                idPosMap = {};
+                magnifiedPos = [-1, -1];
+                JSTableLens.ROWS = data.length;
+                JSTableLens.COLUMNS = Object.keys(data[0]).length;
+                JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
+                JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + JSTableLens.EXTRA_ROW_HEIGHT * (JSTableLens.NUM_ROWS_ONE_SIDE * 2 + 1);
+                createTable("#container");
+                for (var i = 0; i < data.length; i++) {
+                    createRow(data[i], i);
+                    data[i].id = i;
+                    posIdMap[i] = i;
+                    idPosMap[i] = i;
+                }
+            });
 });
 
 function createTable(selector) {
@@ -68,7 +93,7 @@ function createTable(selector) {
 
 function createRow(row, index) {
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
-            .attr("transform" , ("translate(0,".concat(getY(index))).concat(")"))
+            .attr("transform", ("translate(0,".concat(getY(index))).concat(")"))
             .on("click", function () {
                 var test = 0;
                 console.log($(this));
@@ -149,18 +174,19 @@ function createHeader() {
 
         sort_icon.on("click", function () {
             var test = 0;
-            var img_svg = $(this).select("svg:image");
-            var sortmode = img_svg.attr("sortmode");
-
+            var icon = $(this).select("svg:image");
+            var sortmode = icon.attr("sortmode");
+            //reset all other icons
+            console.log(d3.select(this.parentNode));
             console.log(sortmode);
             if (sortmode == "none" || sortmode == "desc") {
-//                TODO
-                img_svg.attr("sortmode", "asc");
-                img_svg.attr("href", "resource/images/sort_asc.png")
+                icon.attr("sortmode", "asc");
+                icon.attr("href", "resource/images/sort_asc.png");
+                sortData(icon.attr("col"), true);
             } else {
-                img_svg.attr("sortmode", "desc");
-                img_svg.attr("href", "resource/images/sort_desc.png")
-
+                icon.attr("sortmode", "desc");
+                icon.attr("href", "resource/images/sort_desc.png");
+                sortData(icon.attr("col"), false);
             }
 
         });
@@ -188,7 +214,7 @@ function getBarMinX(col, width, value) {
     }
 }
 function getWidth(col, width, value) {
-    console.log(col + "<>" + width + "<>" + value);
+//    console.log(col + "<>" + width + "<>" + value);
     if (metadata[col]["type"] == "number") {
         return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
     } else {
@@ -217,11 +243,11 @@ function fillMetadata() {
 }
 
 function translateRow(index, pos) {
-    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos))).concat(")"));
+    var rowGroup = d3.select("#g".concat(index)).attr("transform", ("translate(0,".concat(getY(pos))).concat(")"));
 }
 
 function translateRowWithOffset(index, pos, offset) {
-    var rowGroup = d3.select("#g".concat(index)).attr("transform" , ("translate(0,".concat(getY(pos)+offset)).concat(")"));
+    var rowGroup = d3.select("#g".concat(index)).attr("transform", ("translate(0,".concat(getY(pos) + offset)).concat(")"));
 }
 
 function sortData(col, ascending) {
@@ -240,24 +266,24 @@ function sortData(col, ascending) {
     }
     data = newData;
 
-    _.each(translations, function(translation) {
+    _.each(translations, function (translation) {
         if (translation.id !== translation.newpos)
             translateRow(translation.id, translation.pos);
     });
 }
 
 function resetData() {
-    d3.csv("resource/data/small.csv")
-    .get(function (error, rows) {
-        data = rows;
-        unfilteredData = null;
-        reloadRows();
-    });
+    d3.csv(csv_file)
+            .get(function (error, rows) {
+                data = rows;
+                unfilteredData = null;
+                reloadRows();
+            });
 }
 
 function reloadRows() {
     d3.select("#container").selectAll("*").remove();
-    createTable("#container");    
+    createTable("#container");
     for (var i = 0; i < data.length; i++) {
         createRow(data[i], i);
         data[i].id = i;
@@ -268,16 +294,16 @@ function reloadRows() {
 
 function magnifyRow(index) {
     var currentTransform = d3.select("#g".concat(index)).attr("transform");
-    var rowGroup = d3.select("#g".concat(index)).attr("transform" , currentTransform.concat(" ".concat(("scale(1,".concat(1+JSTableLens.EXTRA_ROW_HEIGHT/JSTableLens.ROW_HEIGHT)).concat(")"))));
+    var rowGroup = d3.select("#g".concat(index)).attr("transform", currentTransform.concat(" ".concat(("scale(1,".concat(1 + JSTableLens.EXTRA_ROW_HEIGHT / JSTableLens.ROW_HEIGHT)).concat(")"))));
 }
 
 function filterData(text) {
     if (unfilteredData == null) {
         unfilteredData = data.slice(0);
     }
-    data = _.filter(unfilteredData, function(row) {
-        var match = _.some(_.values(row), function(val) {
-            var match = val.toString().indexOf(text)!=-1;
+    data = _.filter(unfilteredData, function (row) {
+        var match = _.some(_.values(row), function (val) {
+            var match = val.toString().indexOf(text) != -1;
             return match;
         });
         return match;
