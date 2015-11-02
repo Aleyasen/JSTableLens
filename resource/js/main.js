@@ -26,6 +26,27 @@ var JSTableLens = {
 
 $(document).ready(function () {
 
+    function initSlider() {
+        var selector = "#slider";
+        $(selector).slider("option", "min", 0);
+        $(selector).slider("option", "max", JSTableLens.ROWS);
+        $(selector).slider("option", "value", JSTableLens.ROWS);
+        $(selector).css("height", (JSTableLens.ROW_HEIGHT * JSTableLens.ROWS - 20) + "px");
+    }
+
+    $("#slider").slider({
+        orientation: "vertical",
+        min: 0,
+        max: 100,
+        value: 100,
+        slide: function (event, ui) {
+//            $("#amount").val(ui.value);
+            var max = $("#slider").slider("option", "max");
+            zoom(max - ui.value);
+        }
+    });
+//    $("#amount").val($("#slider-vertical").slider("value"));
+
     $('#query').on('input', function () {
 //        alert($(this).val());
         var q = $(this).val();
@@ -64,6 +85,7 @@ $(document).ready(function () {
                 JSTableLens.WIDTH = JSTableLens.COLUMN_WIDTH * JSTableLens.COLUMNS;
                 JSTableLens.HEIGHT = JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + JSTableLens.EXTRA_ROW_HEIGHT * (JSTableLens.NUM_ROWS_ONE_SIDE * 2 + 1);
                 createTable("#container");
+                initSlider();
                 for (var i = 0; i < data.length; i++) {
                     createRow(data[i], i);
                     data[i].id = i;
@@ -322,6 +344,7 @@ function clearFilter() {
 }
 
 function zoom(index) {
+    console.log("zoom: " + index);
     var startZoomIndex = index - JSTableLens.NUM_ROWS_ONE_SIDE;
     var endZoomIndex = index + JSTableLens.NUM_ROWS_ONE_SIDE;
     if (startZoomIndex < 0)
