@@ -7,6 +7,7 @@ var magnifiedPos;
 var metadata;
 var unfilteredData;
 var csv_file = "resource/data/sample-dataset.csv";
+var strokeWidth = 1;
 
 var JSTableLens = {
     WIDTH: 800,
@@ -15,6 +16,7 @@ var JSTableLens = {
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
     ROW_HEIGHT: 10,
+//    ROW_HEIGHT: 2,
     EXTRA_ROW_HEIGHT: 20,
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
@@ -86,12 +88,14 @@ $(document).ready(function () {
     $("#clear-filter-link").click(function () {
         $('#query').val("");
         clearFilter();
+        updateZoomAreaForFiltering();
     });
 
 
     $("#reset-link").click(function () {
         $('#query').val("");
         resetData();
+        updateZoomAreaForFiltering();
     });
 
     $("#plus-button").click(function () {
@@ -173,7 +177,7 @@ function createRow(row, index) {
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "none")
                 .style("stroke", "black")
-                .style("stroke-width", "1")
+                .style("stroke-width", strokeWidth)
                 ;
         var bar = rowGroup.append("rect")
                 .attr("x", getX(i) + getBarMinX(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
@@ -182,19 +186,20 @@ function createRow(row, index) {
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "#71D670")
                 .style("stroke", "black")
-                .style("stroke-width", "1")
-                ;
+                .style("stroke-width", strokeWidth);
 
-//        if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
+        var visiblity = "hidden";
+        if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
+            visiblity = "visible";
+        }
         var text = rowGroup.append("text")
                 .attr("x", getX(i) + 10)
                 .attr("y", 9)
                 .text(row[cols[i]])
                 .attr("font-family", "sans-serif")
                 .attr("font-size", "10px")
-                .style("visibility", "hidden")
+                .style("visibility", visiblity)
                 ;
-//        }
     }
 }
 
@@ -369,6 +374,14 @@ function magnifyRow(index) {
     var currentTransform = d3.select("#g".concat(index)).attr("transform");
     var rowGroup = d3.select("#g".concat(index)).attr("transform", currentTransform.concat(" ".concat(("scale(1,".concat(1 + JSTableLens.EXTRA_ROW_HEIGHT / JSTableLens.ROW_HEIGHT)).concat(")"))));
     d3.select("#g".concat(index)).selectAll("text").style("visibility", "visible");
+//    var text = rowGroup.append("text")
+//            .attr("x", 10)
+//            .attr("y", 9)
+//            .text("Hello")
+//            .attr("font-family", "sans-serif")
+//            .attr("font-size", "10px")
+//            .style("visibility", "visible")
+//            ;
 }
 
 function filterData(text) {
