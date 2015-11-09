@@ -28,7 +28,16 @@ function initSlider() {
     $(selector).slider("option", "min", 0);
     $(selector).slider("option", "max", JSTableLens.ROWS);
     $(selector).slider("option", "value", JSTableLens.ROWS);
-    $(selector).css("height", (JSTableLens.ROW_HEIGHT * JSTableLens.ROWS - 20) + "px");
+    $(selector).css("height", (JSTableLens.ROW_HEIGHT * JSTableLens.ROWS - 90) + "px");
+}
+
+
+function updateZoomArea(val){
+            var max = $("#slider").slider("option", "max");
+            var actualval = max - val;
+            zoom(actualval);
+            $("#row-label").html("Row " + actualval + " from " + max);
+            $("#slider").css("height", (JSTableLens.ROW_HEIGHT * JSTableLens.ROWS + 10) + "px");
 }
 
 $(document).ready(function () {
@@ -40,8 +49,7 @@ $(document).ready(function () {
         value: 100,
         slide: function (event, ui) {
 //            $("#amount").val(ui.value);
-            var max = $("#slider").slider("option", "max");
-            zoom(max - ui.value);
+            updateZoomArea(ui.value);
         }
     });
 //    $("#amount").val($("#slider-vertical").slider("value"));
@@ -68,6 +76,23 @@ $(document).ready(function () {
         resetData();
     });
 
+    $("#plus-button").click(function () {
+        var val = $("#slider").slider("value");
+        var newval = Math.max(val - 1, 0);
+        $("#slider").slider("value", newval);
+        console.log($("#slider").slider("value"));
+        updateZoomArea(newval);
+    });
+
+
+    $("#minus-button").click(function () {
+        var val = $("#slider").slider("value");
+        var max = $("#slider").slider("option", "max");
+        var newval = Math.min(val + 1, max);
+        $("#slider").slider("value", newval);
+        console.log($("#slider").slider("value"));
+        updateZoomArea(newval);
+    });
 
     d3.csv(csv_file)
             .get(function (error, rows) {
@@ -142,15 +167,16 @@ function createRow(row, index) {
                 .style("stroke-width", "1")
                 ;
 
-        if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
-            var text = rowGroup.append("text")
-                    .attr("x", getX(i) + 10)
-                    .attr("y", 15)
-                    .text(row[cols[i]])
-                    .attr("font-family", "sans-serif")
-                    .attr("font-size", "10px")
-                    ;
-        }
+//        if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
+        var text = rowGroup.append("text")
+                .attr("x", getX(i) + 10)
+                .attr("y", 9)
+                .text(row[cols[i]])
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .style("visibility", "hidden")
+                ;
+//        }
     }
 }
 
@@ -263,10 +289,12 @@ function fillMetadata() {
 
 function translateRow(index, pos) {
     var rowGroup = d3.select("#g".concat(index)).attr("transform", ("translate(0,".concat(getY(pos))).concat(")"));
+    d3.select("#g".concat(index)).selectAll("text").style("visibility", "hidden");
 }
 
 function translateRowWithOffset(index, pos, offset) {
     var rowGroup = d3.select("#g".concat(index)).attr("transform", ("translate(0,".concat(getY(pos) + offset)).concat(")"));
+    d3.select("#g".concat(index)).selectAll("text").style("visibility", "hidden");
 }
 
 function sortData(col, ascending) {
@@ -315,13 +343,14 @@ function reloadRows() {
         posIdMap[i] = i;
         idPosMap[i] = i;
     }
-    magnifiedPos = [-1,-1];
+    magnifiedPos = [-1, -1];
     initSlider();
 }
 
 function magnifyRow(index) {
     var currentTransform = d3.select("#g".concat(index)).attr("transform");
     var rowGroup = d3.select("#g".concat(index)).attr("transform", currentTransform.concat(" ".concat(("scale(1,".concat(1 + JSTableLens.EXTRA_ROW_HEIGHT / JSTableLens.ROW_HEIGHT)).concat(")"))));
+    d3.select("#g".concat(index)).selectAll("text").style("visibility", "visible");
 }
 
 function filterData(text) {
