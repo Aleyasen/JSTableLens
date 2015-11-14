@@ -16,13 +16,14 @@ var JSTableLens = {
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
     ROW_HEIGHT: 10,
-//    ROW_HEIGHT: 2,
+//  ROW_HEIGHT: 2,
     EXTRA_ROW_HEIGHT: 20,
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
     TEXT_VISIBLE_HEIGHT: 15,
-    NUM_ROWS_ONE_SIDE: 2
+    NUM_ROWS_ONE_SIDE: 2, 
+    CURRENT_SORT_COL: ""
 }
 
 function initSlider() {
@@ -45,8 +46,10 @@ function setSliderNonzoom() {
 function updateZoomArea(val) {
     var max = $("#slider").slider("option", "max");
     var actualval = max - val;
+    actualval = Math.max(actualval, JSTableLens.NUM_ROWS_ONE_SIDE);
+    actualval = Math.min(actualval, 200 - JSTableLens.NUM_ROWS_ONE_SIDE);
     zoom(actualval);
-    $("#row-label").html("Row " + actualval + " from " + max);
+    $("#row-label").html("Row " + (actualval - JSTableLens.NUM_ROWS_ONE_SIDE) + " to " + (actualval + JSTableLens.NUM_ROWS_ONE_SIDE) + " out of " + max);
     setSliderZoomed();
 }
 
@@ -158,6 +161,63 @@ function createTable(selector) {
 //            .attr("stroke", "grey");
 }
 
+/**
+ * Converts an RGB color value to HSL. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes r, g, and b are contained in the set [0, 255] and
+ * returns h, s, and l in the set [0, 1].
+ *
+ * @param   Number  r       The red color value
+ * @param   Number  g       The green color value
+ * @param   Number  b       The blue color value
+ * @return  Array           The HSL representation
+ */
+function rgbToHsl(r, g, b){
+    r /= 255, g /= 255, b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if(max == min){
+        h = s = 0; // achromatic
+    }else{
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch(max){
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return [h, s, l];
+}
+
+function hslToRgb(h, s, l){
+    var r, g, b;
+
+    if(s == 0){
+        r = g = b = l; // achromatic
+    }else{
+        var hue2rgb = function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        }
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
 
 function createRow(row, index) {
     var rowGroup = svgContainer.append("g").attr("id", "g".concat(index))
@@ -179,12 +239,14 @@ function createRow(row, index) {
                 .style("stroke", "black")
                 .style("stroke-width", strokeWidth)
                 ;
+
+        var rgb = hslToRgb(Math.floor((300*i)/cols.length)/360,1,getLuminance(cols[i],90, 55, row[cols[i]])/100);
         var bar = rowGroup.append("rect")
                 .attr("x", getX(i) + getBarMinX(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("y", 0)
                 .attr("width", getWidth(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("height", JSTableLens.ROW_HEIGHT)
-                .style("fill", "#71D670")
+                .style("fill", rgb[0].toString(16) + rgb[1].toString(16) + rgb[2].toString(16))
                 .style("stroke", "black")
                 .style("stroke-width", strokeWidth);
 
@@ -223,6 +285,7 @@ function createHeader() {
                 .style("stroke", "black")
                 .style("stroke-width", "1")
                 ;
+
         var text = rowGroup.append("text")
                 .attr("x", getX(i) + 10)
                 .attr("y", 15)
@@ -241,6 +304,7 @@ function createHeader() {
                 .attr("width", "14")
                 .attr("height", "14")
                 .attr("class", "table-header-sort-button")
+                .attr("id", "sort_icon_".concat(i))
                 ;
 
         sort_icon.on("click", function () {
@@ -250,6 +314,12 @@ function createHeader() {
             //reset all other icons
             console.log(d3.select(this.parentNode));
             console.log(sortmode);
+            if (JSTableLens.CURRENT_SORT_COL != "") {
+                var old_icon = d3.select("#".concat(JSTableLens.CURRENT_SORT_COL))
+                            .attr("sortmode", "none")
+                            .attr("href", "resource/images/sort_both.png");
+            }
+            JSTableLens.CURRENT_SORT_COL = icon.attr("id");
             if (sortmode == "none" || sortmode == "desc") {
                 icon.attr("sortmode", "asc");
                 icon.attr("href", "resource/images/sort_asc.png");
@@ -281,14 +351,34 @@ function getBarMinX(col, width, value) {
         return  metadata[col]["map"][value] * width_each;
     }
 }
-function getWidth(col, width, value) {
-//    console.log(col + "<>" + width + "<>" + value);
+
+function getLuminance(col, max_value, min_value, value) {
+    var luminance;
     if (metadata[col]["type"] == "number") {
-        return Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * width);
+        luminance = max_value - Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * (max_value-min_value));
     } else {
-        var width_each = Math.floor(width / metadata[col].unique);
-        return width_each;
+        luminance = Math.floor((max_value + min_value)/2);
     }
+    if (luminance < 0) {
+        console.log(col + "<>" + luminance + "<>" + value);
+        luminance = 0.0;
+    }
+    return luminance;
+}
+
+function getWidth(col, total_width, value) {
+    var width;
+    if (metadata[col]["type"] == "number") {
+        width = Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * total_width);
+    } else {
+        var width_each = Math.floor(total_width / metadata[col].unique);
+        width = width_each;
+    }
+    if (width < 0) {
+        console.log(col + "<>" + width + "<>" + value);
+        width = 0.0;
+    }
+    return width;
 }
 
 function fillMetadata() {
@@ -297,8 +387,8 @@ function fillMetadata() {
         metadata[col] = {};
         var values = _.pluck(data, col);
         if (!isNaN(+values[0])) {
-            metadata[col].max = _.max(values);
-            metadata[col].min = _.min(values);
+            metadata[col].max = Math.max.apply(Math, values);
+            metadata[col].min = Math.min.apply(Math, values);
             metadata[col].type = "number";
         } else {
             var uniqueValues = _.uniq(values);
