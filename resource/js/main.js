@@ -15,15 +15,16 @@ var JSTableLens = {
     ROWS: 200,
     COLUMNS: 6,
     COLUMN_WIDTH: 100,
-    ROW_HEIGHT: 10,
+    ROW_HEIGHT: 2,
 //  ROW_HEIGHT: 2,
-    EXTRA_ROW_HEIGHT: 20,
+    EXTRA_ROW_HEIGHT: 18,
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
     TEXT_VISIBLE_HEIGHT: 15,
     NUM_ROWS_ONE_SIDE: 2, 
-    CURRENT_SORT_COL: ""
+    CURRENT_SORT_COL: "",
+    FONT_SIZE: "14px"
 }
 
 function initSlider() {
@@ -231,13 +232,14 @@ function createRow(row, index) {
         //Draw the Rectangle
 
         var rectangle = rowGroup.append("rect")
+                .attr("id", "outerrrect")
                 .attr("x", getX(i))
                 .attr("y", 0)
                 .attr("width", JSTableLens.COLUMN_WIDTH)
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", "none")
-                .style("stroke", "black")
-                .style("stroke-width", strokeWidth)
+                .style("stroke", "none")
+                .style("stroke-width", 0)
                 ;
 
         var rgb = hslToRgb(Math.floor((300*i)/cols.length)/360,1,getLuminance(cols[i],90, 55, row[cols[i]])/100);
@@ -247,20 +249,23 @@ function createRow(row, index) {
                 .attr("width", getWidth(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("height", JSTableLens.ROW_HEIGHT)
                 .style("fill", rgb[0].toString(16) + rgb[1].toString(16) + rgb[2].toString(16))
-                .style("stroke", "black")
-                .style("stroke-width", strokeWidth);
+                .style("stroke", "none")
+                .style("stroke-width", 0);
 
         var visiblity = "hidden";
         if (rectangle.attr("height") > JSTableLens.TEXT_VISIBLE_HEIGHT) {
             visiblity = "visible";
         }
+
         var text = rowGroup.append("text")
-                .attr("x", getX(i) + 10)
-                .attr("y", 9)
+                .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH/2)
+                .attr("y", (JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT) / 2)
                 .text(row[cols[i]])
                 .attr("font-family", "sans-serif")
-                .attr("font-size", "10px")
+                .attr("font-size", JSTableLens.FONT_SIZE)
                 .style("visibility", visiblity)
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "middle")
                 ;
     }
 }
@@ -463,7 +468,11 @@ function reloadRows() {
 function magnifyRow(index) {
     var currentTransform = d3.select("#g".concat(index)).attr("transform");
     var rowGroup = d3.select("#g".concat(index)).attr("transform", currentTransform.concat(" ".concat(("scale(1,".concat(1 + JSTableLens.EXTRA_ROW_HEIGHT / JSTableLens.ROW_HEIGHT)).concat(")"))));
-    d3.select("#g".concat(index)).selectAll("text").style("visibility", "visible");
+    rowGroup.selectAll("text").style("visibility", "visible");
+    rowGroup.selectAll("text").attr("transform", "scale(1,".concat(JSTableLens.ROW_HEIGHT/(JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT)).concat(")"));
+    rowGroup.selectAll("#outerrect").style("stroke", "black");
+    rowGroup.selectAll("#outerrect").style("strokeWidth", strokeWidth);
+    rowGroup.selectAll("#outerrect").attr("transform", "scale(1,".concat(JSTableLens.ROW_HEIGHT/(JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT)).concat(")"));
 //    var text = rowGroup.append("text")
 //            .attr("x", 10)
 //            .attr("y", 9)
