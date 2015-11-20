@@ -22,7 +22,7 @@ var JSTableLens = {
     Y_MIN: 20,
     X_MIN: 0,
     TEXT_VISIBLE_HEIGHT: 15,
-    NUM_ROWS_ONE_SIDE: 2, 
+    NUM_ROWS_ONE_SIDE: 2,
     CURRENT_SORT_COL: "",
     FONT_SIZE: "14px"
 }
@@ -102,6 +102,20 @@ $(document).ready(function () {
         updateZoomAreaForFiltering();
     });
 
+
+    $("#import-button").click(function () {
+//        alert("Hello");
+//        console.log(csv_file);
+//        console.log($("#url").text());
+        d3.select("#container").remove();
+        var url = $("#url").text();
+        importData(url);
+//        alert("import " + csv_file);
+        $('#query').val("");
+//        resetData();
+//        updateZoomAreaForFiltering();
+    });
+
     $("#plus-button").click(function () {
         var val = $("#slider").slider("value");
         var newval = Math.max(val - 1, 0);
@@ -120,10 +134,19 @@ $(document).ready(function () {
         updateZoomArea(newval);
     });
 
-    d3.csv(csv_file)
+
+    importData(csv_file);
+
+
+});
+
+
+function importData(file) {
+    d3.csv(file)
             .get(function (error, rows) {
 //                console.log(rows);
                 data = rows;
+                console.log(data);
                 unfilteredData = null;
                 cols = Object.keys(rows[0]);
                 fillMetadata();
@@ -143,7 +166,7 @@ $(document).ready(function () {
                     idPosMap[i] = i;
                 }
             });
-});
+}
 
 function createTable(selector) {
     //Make an SVG Container
@@ -173,20 +196,26 @@ function createTable(selector) {
  * @param   Number  b       The blue color value
  * @return  Array           The HSL representation
  */
-function rgbToHsl(r, g, b){
+function rgbToHsl(r, g, b) {
     r /= 255, g /= 255, b /= 255;
     var max = Math.max(r, g, b), min = Math.min(r, g, b);
     var h, s, l = (max + min) / 2;
 
-    if(max == min){
+    if (max == min) {
         h = s = 0; // achromatic
-    }else{
+    } else {
         var d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch(max){
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
+        switch (max) {
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
         }
         h /= 6;
     }
@@ -194,26 +223,31 @@ function rgbToHsl(r, g, b){
     return [h, s, l];
 }
 
-function hslToRgb(h, s, l){
+function hslToRgb(h, s, l) {
     var r, g, b;
 
-    if(s == 0){
+    if (s == 0) {
         r = g = b = l; // achromatic
-    }else{
-        var hue2rgb = function hue2rgb(p, q, t){
-            if(t < 0) t += 1;
-            if(t > 1) t -= 1;
-            if(t < 1/6) return p + (q - p) * 6 * t;
-            if(t < 1/2) return q;
-            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    } else {
+        var hue2rgb = function hue2rgb(p, q, t) {
+            if (t < 0)
+                t += 1;
+            if (t > 1)
+                t -= 1;
+            if (t < 1 / 6)
+                return p + (q - p) * 6 * t;
+            if (t < 1 / 2)
+                return q;
+            if (t < 2 / 3)
+                return p + (q - p) * (2 / 3 - t) * 6;
             return p;
         }
 
         var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
         var p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1/3);
+        r = hue2rgb(p, q, h + 1 / 3);
         g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1/3);
+        b = hue2rgb(p, q, h - 1 / 3);
     }
 
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
@@ -242,7 +276,7 @@ function createRow(row, index) {
                 .style("stroke-width", 0)
                 ;
 
-        var rgb = hslToRgb(Math.floor((300*i)/cols.length)/360,1,getLuminance(cols[i],90, 55, row[cols[i]])/100);
+        var rgb = hslToRgb(Math.floor((300 * i) / cols.length) / 360, 1, getLuminance(cols[i], 90, 55, row[cols[i]]) / 100);
         var bar = rowGroup.append("rect")
                 .attr("x", getX(i) + getBarMinX(cols[i], JSTableLens.COLUMN_WIDTH, row[cols[i]]))
                 .attr("y", 0)
@@ -258,7 +292,7 @@ function createRow(row, index) {
         }
 
         var text = rowGroup.append("text")
-                .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH/2)
+                .attr("x", getX(i) + JSTableLens.COLUMN_WIDTH / 2)
                 .attr("y", (JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT) / 2)
                 .text(row[cols[i]])
                 .attr("font-family", "sans-serif")
@@ -321,8 +355,8 @@ function createHeader() {
             console.log(sortmode);
             if (JSTableLens.CURRENT_SORT_COL != "") {
                 var old_icon = d3.select("#".concat(JSTableLens.CURRENT_SORT_COL))
-                            .attr("sortmode", "none")
-                            .attr("href", "resource/images/sort_both.png");
+                        .attr("sortmode", "none")
+                        .attr("href", "resource/images/sort_both.png");
             }
             JSTableLens.CURRENT_SORT_COL = icon.attr("id");
             if (sortmode == "none" || sortmode == "desc") {
@@ -360,9 +394,9 @@ function getBarMinX(col, width, value) {
 function getLuminance(col, max_value, min_value, value) {
     var luminance;
     if (metadata[col]["type"] == "number") {
-        luminance = max_value - Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * (max_value-min_value));
+        luminance = max_value - Math.floor(((value - metadata[col]["min"]) / (metadata[col]["max"] - metadata[col]["min"])) * (max_value - min_value));
     } else {
-        luminance = Math.floor((max_value + min_value)/2);
+        luminance = Math.floor((max_value + min_value) / 2);
     }
     if (luminance < 0) {
         console.log(col + "<>" + luminance + "<>" + value);
@@ -469,10 +503,10 @@ function magnifyRow(index) {
     var currentTransform = d3.select("#g".concat(index)).attr("transform");
     var rowGroup = d3.select("#g".concat(index)).attr("transform", currentTransform.concat(" ".concat(("scale(1,".concat(1 + JSTableLens.EXTRA_ROW_HEIGHT / JSTableLens.ROW_HEIGHT)).concat(")"))));
     rowGroup.selectAll("text").style("visibility", "visible");
-    rowGroup.selectAll("text").attr("transform", "scale(1,".concat(JSTableLens.ROW_HEIGHT/(JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT)).concat(")"));
+    rowGroup.selectAll("text").attr("transform", "scale(1,".concat(JSTableLens.ROW_HEIGHT / (JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT)).concat(")"));
     rowGroup.selectAll("#outerrect").style("stroke", "black");
     rowGroup.selectAll("#outerrect").style("strokeWidth", strokeWidth);
-    rowGroup.selectAll("#outerrect").attr("transform", "scale(1,".concat(JSTableLens.ROW_HEIGHT/(JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT)).concat(")"));
+    rowGroup.selectAll("#outerrect").attr("transform", "scale(1,".concat(JSTableLens.ROW_HEIGHT / (JSTableLens.ROW_HEIGHT + JSTableLens.EXTRA_ROW_HEIGHT)).concat(")"));
 //    var text = rowGroup.append("text")
 //            .attr("x", 10)
 //            .attr("y", 9)

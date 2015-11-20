@@ -38,17 +38,30 @@ and open the template in the editor.
             </div>
 
         </div>
-        <div>
-            <div id="container"></div>
-            <div id="slider-container">
-                <button id="minus-button" type="button" class="btn btn-default">
-                    <span  class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-                </button>
-                <div id="slider"></div>
-                <button  id="plus-button" type="button" class="btn btn-default">
-                    <span class="glyphicon glyphicon-plus"  aria-hidden="true"></span>
-                </button>
+        <div class="row">
+            <div class="col-md-11" style="margin-left:15px;">
+                <div id="container"></div>
+                <div id="slider-container">
+                    <button id="minus-button" type="button" class="btn btn-default">
+                        <span  class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </button>
+                    <div id="slider"></div>
+                    <button  id="plus-button" type="button" class="btn btn-default">
+                        <span class="glyphicon glyphicon-plus"  aria-hidden="true"></span>
+                    </button>
 
+                </div>
+            </div>
+        </div>
+
+        <div class="row"> 
+            <div class="col-md-4" style="margin-left:15px;">
+                <div class="input-group">
+                    <input type="text" id="url" class="form-control" placeholder="Enter URL...">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" id="import-button" type="button">Import!</button>
+                    </span>
+                </div><!-- /input-group -->
             </div>
         </div>
     </body>
