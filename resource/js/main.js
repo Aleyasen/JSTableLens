@@ -455,7 +455,15 @@ function translateRowWithOffset(index, pos, offset) {
 }
 
 function sortData(col, ascending) {
-    var newData = _.sortBy(data, col);
+    // var newData = _.sortBy(data, col);
+    var newData = _.sortBy(data,
+            function (o) {
+                if (metadata[col].type === "number") {
+                    return parseFloat(o[col]);
+                } else {
+                    return o[col];
+                }
+            });
 //    var newData = _.sortBy(data, function (obj) {
 //        var cc = [], s = obj[col];
 //        for (var i = 0, c; c = s.charAt(i); i++)
