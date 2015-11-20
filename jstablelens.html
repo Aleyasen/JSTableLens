@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>JSTableLens</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+
+        <link href="resource/css/main.css" rel="stylesheet" type="text/css"/>
+
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script src=" https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="http://underscorejs.org/underscore-min.js"></script>
+        <script src="resource/js/main.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="row" style="margin-bottom: 5px; margin-top: 10px;">
+            <div class="col-md-3">
+                <label for="tags">Filter: </label>
+                <input id="query">
+                <a id="clear-filter-link" style="text-decoration: none; font-family: sans-serif; color: gray" href="#">x</a>
+
+            </div>
+            <div class="col-md-2">
+                <div id="row-label"></div>
+            </div>
+            <div class="col-md-2">
+                <a id="reset-link" style="float: right;" href="#">reset</a>    
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-11" style="margin-left:15px;">
+                <div id="container"></div>
+                <div id="slider-container">
+                    <button id="minus-button" type="button" class="btn btn-default">
+                        <span  class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </button>
+                    <div id="slider"></div>
+                    <button  id="plus-button" type="button" class="btn btn-default">
+                        <span class="glyphicon glyphicon-plus"  aria-hidden="true"></span>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row"> 
+            <div class="col-md-4" style="margin-left:15px;">
+                <div class="input-group">
+                    <input type="text" id="url" class="form-control" placeholder="Enter URL...">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" id="import-button" type="button">Import!</button>
+                    </span>
+                </div><!-- /input-group -->
+            </div>
+        </div>
+    </body>
+</html>
