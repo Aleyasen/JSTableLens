@@ -48,7 +48,7 @@ function updateZoomArea(val) {
     var max = $("#slider").slider("option", "max");
     var actualval = max - val;
     actualval = Math.max(actualval, JSTableLens.NUM_ROWS_ONE_SIDE);
-    actualval = Math.min(actualval, 200 - JSTableLens.NUM_ROWS_ONE_SIDE);
+    actualval = Math.min(actualval, JSTableLens.ROWS - JSTableLens.NUM_ROWS_ONE_SIDE);
     zoom(actualval);
     $("#row-label").html("Row " + (actualval - JSTableLens.NUM_ROWS_ONE_SIDE) + " to " + (actualval + JSTableLens.NUM_ROWS_ONE_SIDE) + " out of " + max);
     setSliderZoomed();
@@ -134,7 +134,9 @@ $(document).ready(function () {
         updateZoomArea(newval);
     });
 
-
+    if (getParam("ds") != "") {
+        csv_file = "resource/data/" + getParam("ds") + ".csv";
+    }
     importData(csv_file);
 
 
@@ -595,5 +597,13 @@ function zoom(index) {
         magnifiedPos[0] = startZoomIndex;
         magnifiedPos[1] = endZoomIndex;
     }
+}
+
+
+function getParam(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
