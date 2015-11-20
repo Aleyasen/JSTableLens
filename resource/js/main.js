@@ -21,7 +21,7 @@ var JSTableLens = {
     HEADER_HEIGHT: 20,
     Y_MIN: 20,
     X_MIN: 0,
-    TEXT_VISIBLE_HEIGHT: 15,
+    TEXT_VISIBLE_HEIGHT: 20,
     NUM_ROWS_ONE_SIDE: 2,
     CURRENT_SORT_COL: "",
     FONT_SIZE: "14px"
@@ -136,6 +136,9 @@ $(document).ready(function () {
 
     if (getParam("ds") != "") {
         csv_file = "resource/data/" + getParam("ds") + ".csv";
+    }
+    if (getParam("h") != "") {
+        JSTableLens.ROW_HEIGHT = getParam("h");
     }
     importData(csv_file);
 
