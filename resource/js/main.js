@@ -14,7 +14,7 @@ var JSTableLens = {
     HEIGHT: 450,
     ROWS: 200,
     COLUMNS: 6,
-    COLUMN_WIDTH: 100,
+    COLUMN_WIDTH: 130,
     ROW_HEIGHT: 2,
 //  ROW_HEIGHT: 2,
     EXTRA_ROW_HEIGHT: 18,
@@ -453,6 +453,13 @@ function translateRowWithOffset(index, pos, offset) {
 
 function sortData(col, ascending) {
     var newData = _.sortBy(data, col);
+//    var newData = _.sortBy(data, function (obj) {
+//        var cc = [], s = obj[col];
+//        for (var i = 0, c; c = s.charAt(i); i++)
+//            c == +c ? cc.push(+c) : cc.push(c.charCodeAt(0));
+//        return +cc.join('');
+//    });
+// http://stackoverflow.com/questions/25101038/underscore-js-sort-an-array-of-objects-alphanumerically
     if (!ascending)
         newData.reverse();
     var translations = [];
